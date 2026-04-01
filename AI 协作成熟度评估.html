@@ -605,40 +605,84 @@
             else pattern = 'orchestrator';
             
             const patterns = {
-                explorer: { title: '探索者模式 · 即问即用型', color: 'amber', desc: '你把 AI 当作智能搜索引擎，快速获取信息和灵感。' },
-                collaborator: { title: '协作者模式 · 对话打磨型', color: 'rose', desc: '你通过多轮对话与 AI 共同完善内容，重视互动过程。' },
-                delegator: { title: '委托者模式 · 任务外包型', color: 'green', desc: '你将完整任务交给 AI 执行，专注于审核和决策。' },
-                orchestrator: { title: '编排者模式 · 系统整合型', color: 'purple', desc: '你将 AI 深度融入工作流，形成自适应的协作系统。' }
+                explorer: { title: '探索者模式 · 即问即用型', level: 'L1', levelName: '探索期', color: 'amber', desc: '你把 AI 当作智能搜索引擎，快速获取信息和灵感。' },
+                collaborator: { title: '协作者模式 · 对话打磨型', level: 'L2', levelName: '协作期', color: 'rose', desc: '你通过多轮对话与 AI 共同完善内容，重视互动过程。' },
+                delegator: { title: '委托者模式 · 任务外包型', level: 'L3', levelName: '代理期', color: 'green', desc: '你将完整任务交给 AI 执行，专注于审核和决策。' },
+                orchestrator: { title: '编排者模式 · 系统整合型', level: 'L4', levelName: '自治期', color: 'purple', desc: '你将 AI 深度融入工作流，形成自适应的协作系统。' }
             };
             
             const p = patterns[pattern];
+
+            // 计算最强和最弱维度
+            const dimScores = [
+                { name: '委托', key: 'delegation', score: scores.delegation },
+                { name: '描述', key: 'description', score: scores.description },
+                { name: '辨别', key: 'discernment', score: scores.discernment },
+                { name: '审慎', key: 'diligence', score: scores.diligence }
+            ];
+            const weakestDim = dimScores.reduce((min, d) => d.score < min.score ? d : min, dimScores[0]);
+
+            // 优化建议
+            const suggestions = {
+                delegation: '尝试将复杂任务拆解，明确人机分工，建立标准化的委托流程。',
+                description: '多练习结构化表达，建立个人提示词模板库，给AI更清晰的上下文。',
+                discernment: '养成验证AI输出的习惯，交叉核对关键信息，理解AI的能力边界。',
+                diligence: '建立AI使用规范，明确标注AI辅助内容，定期总结使用经验。'
+            };
+
             document.getElementById('question-container').innerHTML = `
                 <div class="text-center py-12">
-                    <h3 class="text-3xl font-bold text-gray-800 mb-4">评估完成</h3>
-                    <div class="inline-block px-6 py-3 rounded-full bg-${p.color}-100 text-${p.color}-700 font-bold mb-6">
-                        ${p.title}
+                    <h3 class="text-3xl font-bold text-gray-800 mb-6">评估完成</h3>
+
+                    <!-- 层级标识卡片 -->
+                    <div class="bg-${p.color}-50 border-2 border-${p.color}-200 rounded-2xl p-6 mb-6 max-w-lg mx-auto">
+                        <div class="flex items-center justify-center gap-3 mb-3">
+                            <div class="w-14 h-14 rounded-full bg-gradient-to-br from-${p.color}-300 to-${p.color}-500 flex items-center justify-center text-white text-xl font-bold shadow-lg">
+                                ${p.level}
+                            </div>
+                            <div class="text-left">
+                                <div class="text-sm text-${p.color}-600 font-medium">${p.levelName}</div>
+                                <div class="text-lg font-bold text-gray-800">${p.title}</div>
+                            </div>
+                        </div>
+                        <p class="text-gray-600">${p.desc}</p>
                     </div>
-                    <p class="text-lg text-gray-600 mb-8">${p.desc}</p>
-                    
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                        <div class="bg-amber-50 p-4 rounded-xl">
+
+                    <!-- 四维得分 -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 max-w-2xl mx-auto">
+                        <div class="bg-amber-50 p-4 rounded-xl ${weakestDim.key === 'delegation' ? 'ring-2 ring-amber-400' : ''}">
                             <div class="text-2xl font-bold text-amber-600">${scores.delegation}/16</div>
                             <div class="text-sm text-gray-600">委托</div>
+                            ${weakestDim.key === 'delegation' ? '<div class="text-xs text-amber-600 mt-1">可提升</div>' : ''}
                         </div>
-                        <div class="bg-rose-50 p-4 rounded-xl">
+                        <div class="bg-rose-50 p-4 rounded-xl ${weakestDim.key === 'description' ? 'ring-2 ring-rose-400' : ''}">
                             <div class="text-2xl font-bold text-rose-600">${scores.description}/16</div>
                             <div class="text-sm text-gray-600">描述</div>
+                            ${weakestDim.key === 'description' ? '<div class="text-xs text-rose-600 mt-1">可提升</div>' : ''}
                         </div>
-                        <div class="bg-green-50 p-4 rounded-xl">
+                        <div class="bg-green-50 p-4 rounded-xl ${weakestDim.key === 'discernment' ? 'ring-2 ring-green-400' : ''}">
                             <div class="text-2xl font-bold text-green-600">${scores.discernment}/16</div>
                             <div class="text-sm text-gray-600">辨别</div>
+                            ${weakestDim.key === 'discernment' ? '<div class="text-xs text-green-600 mt-1">可提升</div>' : ''}
                         </div>
-                        <div class="bg-purple-50 p-4 rounded-xl">
+                        <div class="bg-purple-50 p-4 rounded-xl ${weakestDim.key === 'diligence' ? 'ring-2 ring-purple-400' : ''}">
                             <div class="text-2xl font-bold text-purple-600">${scores.diligence}/16</div>
                             <div class="text-sm text-gray-600">审慎</div>
+                            ${weakestDim.key === 'diligence' ? '<div class="text-xs text-purple-600 mt-1">可提升</div>' : ''}
                         </div>
                     </div>
-                    
+
+                    <!-- 优化建议 -->
+                    <div class="bg-gray-50 rounded-xl p-5 mb-8 max-w-2xl mx-auto text-left">
+                        <div class="flex items-center gap-2 mb-2">
+                            <svg class="w-5 h-5 text-${p.color}-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                            <span class="font-semibold text-gray-800">优化建议</span>
+                        </div>
+                        <p class="text-gray-600 text-sm">你的<span class="font-medium text-${p.color}-600">${weakestDim.name}</span>维度相对较弱。${suggestions[weakestDim.key]}</p>
+                    </div>
+
                     <button onclick="location.reload()" class="px-8 py-3 rounded-full bg-gradient-to-r from-[#D4A5A5] to-[#C99595] text-white font-medium hover:shadow-lg">
                         重新评估
                     </button>
